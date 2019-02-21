@@ -6,17 +6,13 @@ version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
       - image: circleci/node:10
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/mongo:3.4.4
-
     working_directory: ~/repo
+    environment:
+      REPO_BUILD_DIR: ~/repo/build
 
     steps:
+      # checkout the repository
       - checkout
 
       # Download and cache dependencies
@@ -35,3 +31,39 @@ jobs:
 
       # run tests!
       - run: yarn test
+
+      # install aws cli
+      - run: sudo apt-get update && sudo apt-get install -y python-dev
+      - run: sudo curl -O https://bootstrap.pypa.io/get-pip.py
+      - run: sudo python get-pip.py
+      - run: sudo pip install awscli --upgrade
+      - run: aws --version
+
+      - run: aws s3 ls
+
+      # Build react site
+      - run: yarn build
+
+      #- run:
+      #  name: test our generated HTML files
+      #  command: 
+
+      - deploy:
+          name: deploy to Production AWS s3
+          command: |
+            if [ "${CIRCLE_BRANCH}" = "master" ]; then
+              aws s3 sync $REPO_BUILD_DIR \
+              s3://$PRODUCTION_S3_BUCKET_NAME/ --delete
+            else
+              echo "Not master branch, dry run only"
+            fi
+
+      - deploy:
+          name: deploy to staging AWS s3
+          command: |
+            if [ "${CIRCLE_BRANCH" = "staging" ]; then
+              aws s3 sync $REPO_BUILD_DIR \
+              s3://$STAGING_S3_BUCKET_NAME/ --delete
+            else
+              echo "Not staging branch, dry run only"
+            fi
