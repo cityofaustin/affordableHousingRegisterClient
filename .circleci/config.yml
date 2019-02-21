@@ -65,7 +65,7 @@ jobs:
           name: deploy to staging AWS s3
           working_directory: $REPO_BUILD_DIR
           command: |
-            if [ "${CIRCLE_BRANCH" = "staging" ]; then
+            if [ "${CIRCLE_BRANCH}" = "staging" ]; then
               aws s3 sync $REPO_BUILD_DIR \
               s3://$STAGING_S3_BUCKET_NAME/ --delete
             else
