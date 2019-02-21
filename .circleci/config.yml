@@ -4,6 +4,8 @@
 #
 version: 2
 jobs:
+  prepare:
+
   build:
     docker:
       - image: circleci/node:10
@@ -14,7 +16,7 @@ jobs:
     steps:
       # checkout the repository
       - checkout
-
+      
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -44,12 +46,15 @@ jobs:
       # Build react site
       - run: yarn build
 
+      #/home/circleci/repo/build
+
       #- run:
       #  name: test our generated HTML files
       #  command: 
 
       - deploy:
           name: deploy to Production AWS s3
+          working_directory: $REPO_BUILD_DIR
           command: |
             if [ "${CIRCLE_BRANCH}" = "master" ]; then
               aws s3 sync $REPO_BUILD_DIR \
@@ -60,6 +65,7 @@ jobs:
 
       - deploy:
           name: deploy to staging AWS s3
+          working_directory: $REPO_BUILD_DIR
           command: |
             if [ "${CIRCLE_BRANCH" = "staging" ]; then
               aws s3 sync $REPO_BUILD_DIR \
