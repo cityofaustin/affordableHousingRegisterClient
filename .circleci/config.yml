@@ -32,6 +32,9 @@ jobs:
       - image: circleci/node:10
     working_directory: ~/repo
     steps:
+      # checkout the repository
+      - checkout
+
       # run tests!
       - run: yarn test
 
@@ -40,6 +43,8 @@ jobs:
       - image: circleci/node:10
     working_directory: ~/repo
     steps:
+    # checkout the repository
+    - checkout
     - deploy:
           name: deploy to staging AWS s3
           working_directory: ~/repo
