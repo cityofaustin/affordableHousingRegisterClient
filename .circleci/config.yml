@@ -43,7 +43,31 @@ jobs:
 
       # Build react site
       - run: yarn build
-      - persist_to_workspace:
-          root: .
-          paths:
-            - build
+
+      #/home/circleci/repo/build
+
+      #- run:
+      #  name: test our generated HTML files
+      #  command: 
+
+      - deploy:
+          name: deploy to Production AWS s3
+          working_directory: $REPO_BUILD_DIR
+          command: |
+            if [ "${CIRCLE_BRANCH}" = "master" ]; then
+              aws s3 sync $REPO_BUILD_DIR \
+              s3://$PRODUCTION_S3_BUCKET_NAME/ --delete
+            else
+              echo "Not master branch, dry run only"
+            fi
+
+      - deploy:
+          name: deploy to staging AWS s3
+          working_directory: $REPO_BUILD_DIR
+          command: |
+            if [ "${CIRCLE_BRANCH}" = "staging" ]; then
+              aws s3 sync "build" \
+              s3://$STAGING_S3_BUCKET_NAME/ --delete
+            else
+              echo "Not staging branch, dry run only"
+            fi
