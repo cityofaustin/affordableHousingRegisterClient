@@ -4,8 +4,6 @@
 #
 version: 2
 jobs:
-  prepare:
-
   build:
     docker:
       - image: circleci/node:10
