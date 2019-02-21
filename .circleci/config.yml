@@ -8,13 +8,16 @@ jobs:
     docker:
       - image: circleci/node:10
     working_directory: ~/repo
-    environment:
-      REPO_BUILD_DIR: ~/repo/build
 
     steps:
       # checkout the repository
       - checkout
 
+      # Log the current branch
+      - run:
+          name: Show current branch
+          command: echo ${CIRCLE_BRANCH}
+      
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -44,15 +47,18 @@ jobs:
       # Build react site
       - run: yarn build
 
+      #/home/circleci/repo/build
+
       #- run:
       #  name: test our generated HTML files
       #  command: 
 
       - deploy:
           name: deploy to Production AWS s3
+          working_directory: ~/repo
           command: |
             if [ "${CIRCLE_BRANCH}" = "master" ]; then
-              aws s3 sync $REPO_BUILD_DIR \
+              aws s3 sync ~/repo/build \
               s3://$PRODUCTION_S3_BUCKET_NAME/ --delete
             else
               echo "Not master branch, dry run only"
@@ -60,9 +66,10 @@ jobs:
 
       - deploy:
           name: deploy to staging AWS s3
+          working_directory: ~/repo
           command: |
-            if [ "${CIRCLE_BRANCH" = "staging" ]; then
-              aws s3 sync $REPO_BUILD_DIR \
+            if [ "${CIRCLE_BRANCH}" = "staging" ]; then
+              aws s3 sync ~/repo/build \
               s3://$STAGING_S3_BUCKET_NAME/ --delete
             else
               echo "Not staging branch, dry run only"
