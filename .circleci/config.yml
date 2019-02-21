@@ -28,12 +28,16 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
   test1:
+    docker:
+      - image: circleci/node:10
     working_directory: ~/repo
     steps:
       # run tests!
       - run: yarn test
 
   staging:
+    docker:
+      - image: circleci/node:10
     working_directory: ~/repo
     steps:
     - deploy:
