@@ -43,6 +43,10 @@ jobs:
 
       # Build react site
       - run: yarn build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build
 
       #/home/circleci/repo/build
 
