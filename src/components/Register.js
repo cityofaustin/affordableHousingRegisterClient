@@ -14,7 +14,7 @@ const initalState = {
     lastnameError: '',
     firstnameError: '',
     emailError: '',
-    passwordError: '' 
+    passwordError: ''
 }
 
 class Register extends Component {
@@ -28,10 +28,10 @@ class Register extends Component {
 
     onChange (e) {
         const isCheckbox = e.target.type === "checkbox"
-        this.setState({ 
+        this.setState({
             [e.target.name]: isCheckbox
                 ? e.target.checked
-                : e.target.value 
+                : e.target.value
         })
     }
 
@@ -39,7 +39,7 @@ class Register extends Component {
         let lastnameError= '';
         let firstnameError= '';
         let emailError= '';
-        let passwordError= ''; 
+        let passwordError= '';
 
         if (!this.state.first_name){
             firstnameError='Invalid First Name'
@@ -54,7 +54,6 @@ class Register extends Component {
             passwordError='Invalid Password'
         }
 
-        
         if (emailError || lastnameError || firstnameError || passwordError){
             this.setState({emailError, lastnameError, firstnameError, passwordError});
             return false;
@@ -68,8 +67,6 @@ class Register extends Component {
         const isValid = this.validate()
 
         if (isValid){
-            //console.log(this.state)
-            toast.success('User has been registered.')
 
             const user = {
                 first_name: this.state.first_name,
@@ -80,12 +77,15 @@ class Register extends Component {
             }
 
             register(user).then(res => {
-                this.props.history.push(`/`)
+                toast.success('User has been registered.')
+                this.props.history.push(`/`);
+                //clear form
+                this.setState(initalState);
+                return Promise.resolve();
             })
-
-            //clear form
-            this.setState(initalState);
-       
+            .catch((err) => {
+                toast.error('User registration failed')
+            })
         }
 
 
@@ -94,22 +94,22 @@ class Register extends Component {
     render () {
         return (
             <div className="container">
-            
+
                 <h1>Register</h1>
                 <Form noValidate onSubmit={this.onSubmit}>
-                    
+
                     <Form.Group controlId="formBasicFirstName">
                         <Form.Label>First Name</Form.Label>
                         <Form.Control required name="first_name" type="text" placeholder="Enter first name" value={this.state.first_name} onChange={this.onChange} />
                         <Form.Text className="text-danger">{this.state.firstnameError}</Form.Text>
                     </Form.Group>
-                    
+
                     <Form.Group controlId="formBasicLastName">
                         <Form.Label>Last Name</Form.Label>
                         <Form.Control required name="last_name" type="text" placeholder="Enter last name" value={this.state.last_name} onChange={this.onChange} />
                         <Form.Text className="text-danger">{this.state.lastnameError}</Form.Text>
                     </Form.Group>
-                    
+
                     <Form.Group controlId="formBasicOrganization">
                         <Form.Label>Organization</Form.Label>
                         <Form.Control name="org"  type="text" placeholder="Enter Organization Name" value={this.state.org} onChange={this.onChange} />
