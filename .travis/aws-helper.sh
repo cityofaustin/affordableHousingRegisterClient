@@ -78,16 +78,13 @@ fi;
 #
 
 if [ "${TRAVIS_BRANCH}" == "production" ]; then
-  DEPLOYMENT_MODE="PRODUCTION"
-  NODE_ENV="production"
-  REACT_APP_API_URL=$API_URL_PRODUCTION
-elif [ "${TRAVIS_BRANCH}" == "master" ]  || [ "${TRAVIS_BRANCH}" = "staging" ] ; then
+  DEPLOYMENT_MODE="PRODUCTION";
+  NODE_ENV="production";
+  REACT_APP_API_URL=$API_URL_PRODUCTION;
+else
   DEPLOYMENT_MODE="STAGING"
   NODE_ENV="staging"
-  REACT_APP_API_URL=$API_URL_STAGING
-else
-  NODE_ENV="development"
-  REACT_APP_API_URL=$API_URL_STAGING
+  REACT_APP_API_URL=$API_URL_STAGING;
   helper_halt_deployment "TRAVIS_BRANCH: '${TRAVIS_BRANCH}' cannot be deployed to staging or production."
 fi;
 
