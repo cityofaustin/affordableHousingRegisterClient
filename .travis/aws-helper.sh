@@ -1,0 +1,268 @@
+#!/usr/bin/env bash
+
+#set -o errexit
+
+#
+# Colors
+#
+
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+
+#
+#
+#
+
+echo "TRAVIS_BRANCH: $TRAVIS_BRANCH"
+echo "TRAVIS_PULL_REQUEST: $TRAVIS_PULL_REQUEST"
+echo "TRAVIS_PULL_REQUEST_BRANCH: $TRAVIS_PULL_REQUEST_BRANCH"
+echo "TRAVIS_BUILD_DIR: $TRAVIS_BUILD_DIR"
+#
+# Prints error message and stops deployment by returing exit 1
+# $1 (string) - Error message to display
+# Example: helper_halt_deployment "File not found"
+#
+
+function helper_halt_deployment {
+    echo -e "\n\n--------------------------------------------------------------"
+    echo -e "${RED}FATAL ERROR:${NC}"
+    echo -e "${1}"
+    echo -e "--------------------------------------------------------------\n\n"
+    travis_terminate 1;
+}
+
+#
+# Simply builds a noticeable header when parsing logs.
+# This should help determine when our commands begin execution,
+# and what branch is being affected by current deployment.
+#
+
+function print_header {
+    echo ""
+    echo ""
+    echo "--------------------------------------------------------------"
+    echo "   $1"
+    echo "--------------------------------------------------------------"
+    echo "  TRAVIS_BRANCH:              ${TRAVIS_BRANCH}"
+    echo "  TRAVIS_PULL_REQUEST:        ${TRAVIS_PULL_REQUEST}"
+    echo "  TRAVIS_PULL_REQUEST_BRANCH: ${TRAVIS_PULL_REQUEST_BRANCH}"
+    echo ""
+}
+
+#
+# Identify 'Production' or 'Staging' branches
+#
+
+DEPLOYMENT_MODE="not-available"
+
+#
+# We need the branch
+#
+
+if [ "${TRAVIS_BRANCH}" == "" ]; then
+  helper_halt_deployment "Branch name not defined in variable TRAVIS_BRANCH."
+fi;
+
+
+#
+# We need AWS permissions
+#
+
+if [ "${AWS_ACCESS_KEY_ID}" == "" ] || [ "${AWS_DEFAULT_REGION}" == "" ] || [ "${AWS_SECRET_ACCESS_KEY}" == "" ]; then
+  helper_halt_deployment "Halting deployment, please check your AWS API keys."
+fi;
+
+
+#
+# We will need to determine the deployment mode (environment, ie. production or staging)
+#
+
+if [ "${TRAVIS_BRANCH}" == "production" ]; then
+  DEPLOYMENT_MODE="PRODUCTION"
+  NODE_ENV="production"
+  REACT_APP_API_URL=$API_URL_PRODUCTION
+elif [ "${TRAVIS_BRANCH}" == "master" ]  || [ "${TRAVIS_BRANCH}" = "staging" ] ; then
+  DEPLOYMENT_MODE="STAGING"
+  NODE_ENV="staging"
+  REACT_APP_API_URL=$API_URL_STAGING
+else
+  NODE_ENV="development"
+  REACT_APP_API_URL=$API_URL_STAGING
+  helper_halt_deployment "TRAVIS_BRANCH: '${TRAVIS_BRANCH}' cannot be deployed to staging or production."
+fi;
+
+NODE_ENV="production"
+REACT_APP_API_URL="production"
+
+
+#
+# We need AWS permissions
+#
+if [ "${REACT_APP_API_URL}" == "" ]; then
+  helper_halt_deployment "Halting deployment, please make sure the env. var. REACT_APP_API_URL is configured."
+fi;
+
+
+echo "Working with deployment mode: ${DEPLOYMENT_MODE}"
+echo "Endpoint REACT_APP_API_URL: ${REACT_APP_API_URL}"
+
+
+if [ "${NODE_BUILD_FOLDER}" = "" ]; then
+  NODE_BUILD_FOLDER="build" #default
+  echo "NODE_BUILD_FOLDER: ${NODE_BUILD_FOLDER}"
+fi;
+
+#
+#
+#    HELPER FUNCTIONS
+#
+#
+
+# Returns TRUE if this is a Pull Request
+function is_pull_request {
+    if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
+      echo "FALSE";
+    else
+      echo "TRUE";
+    fi;
+}
+
+# Returns $1 in upper case
+function to_uppercase {
+  echo $1 | awk '{print toupper($0)}'
+}
+
+# Returns $1 in lower case
+function to_lowercase {
+  echo $1 | awk '{print tolower($0)}'
+}
+
+# Returns the name of the bucket to deploy to
+function resolve_bucket {
+  IS_PR=$(is_pull_request);
+
+  if [ "${IS_PR}" = "TRUE" ]; then
+    echo $AWS_BUCKET_NAME_PR;
+  elif [ "${DEPLOYMENT_MODE}" == "PRODUCTION" ]; then
+    echo $AWS_BUCKET_NAME_PRODUCTION;
+  else
+    echo $AWS_BUCKET_NAME_STAGING;
+  fi;
+}
+
+
+# Returns the repo name
+function form_get_repo_name {
+  REPO_SLUG=""
+
+  if [ "${TRAVIS_PULL_REQUEST_SLUG}" = "" ]; then
+    REPO_SLUG=${TRAVIS_REPO_SLUG};
+  else
+    REPO_SLUG=${TRAVIS_PULL_REQUEST_SLUG};
+  fi;
+
+  echo $REPO_SLUG | awk -F"/" '{print $NF}';
+}
+
+#
+# A shortcut to search-replace a string in a file
+# ie. forms_search_replace_file  "http://localhost" "http://www.prod.com" myconfig.js
+#
+function forms_search_replace_file {
+	SEARCHSTR=$1
+	REPLACESTR=$2
+	FILE=$3
+  echo "Replacing, current working dir: ${PWD}";
+  echo "sed -i -e 's|${SEARCHSTR}|${REPLACESTR}|g' $FILE;"
+	sed -i -e "s|${SEARCHSTR}|${REPLACESTR}|g" $FILE;
+}
+
+#
+# Packages the application and deploys to a Lambda Function
+#
+function forms_show_cwd {
+  echo "Current working directory: $PWD";
+}
+
+#
+# Changes the current directory to the initial default TRAVIS_BUILD_DIR
+#
+function forms_reset_cwd {
+  echo "Resetting working directory to $TRAVIS_BUILD_DIR"
+  cd $TRAVIS_BUILD_DIR;
+  forms_show_cwd;
+}
+
+#
+# Returns the final URL for a form
+#
+
+function resolve_form_url {
+  IS_PR=$(is_pull_request);
+  if [ "${IS_PR}" = "TRUE" ]; then
+    echo "officer-complaint-pr-${TRAVIS_PULL_REQUEST}";
+  else
+    echo "${FORM_DEPLOYMENT_URI}";
+  fi;
+}
+
+
+#
+# Returns the name of the repo from a github url
+#
+function forms_get_slug {
+  echo $1 | awk -F"/" '{print $NF}';
+}
+
+#
+# Changes the directory, need this to track on stdout where we currently are
+#
+function forms_change_dir {
+  FORM_DIR=$1
+  echo "Changing directory to ${FORM_DIR}"
+  cd $FORM_DIR
+}
+
+
+
+
+function forms_sync_form_aws {
+  FORM_SLUG=$1
+  DEPLOYMENT_BUCKET=$(resolve_bucket)
+  S3_DESTINATION="s3://${DEPLOYMENT_BUCKET}/${FORM_SLUG}"
+  echo "Syncing ${FORM_SLUG} into ${S3_DESTINATION}"
+  aws s3 sync ./$NODE_BUILD_FOLDER $S3_DESTINATION --delete
+}
+
+
+
+#
+# Builds a repo
+#
+function forms_build {
+  print_header "Building Form"
+  forms_reset_cwd;
+
+  FINAL_URL=$(resolve_form_url)
+  echo "URI GENERATED: '${FINAL_URL}'"
+
+  echo "forms_build() Installing dependencies"
+  npm install;
+
+  #
+  # We can now proceed to build the rest of the form
+  #
+
+  echo "forms_build() Building form into 'public', REACT_APP_API_URL: '${REACT_APP_API_URL}'"
+
+  npm run-script build;
+
+  forms_sync_form_aws $FINAL_URL;
+}
+
+
+function forms_postrelease {
+  CURRENT_BRANCH=$1
+  echo "Nothing to be done for $CURRENT_BRANCH"
+  echo "Deployment Mode: ${DEPLOYMENT_MODE}"
+}
