@@ -85,7 +85,6 @@ else
   DEPLOYMENT_MODE="STAGING"
   NODE_ENV="staging"
   REACT_APP_API_URL=$API_URL_STAGING;
-  helper_halt_deployment "TRAVIS_BRANCH: '${TRAVIS_BRANCH}' cannot be deployed to staging or production."
 fi;
 
 #
