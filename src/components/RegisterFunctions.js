@@ -4,12 +4,9 @@ export const register = newUser => {
 
     console.log("We will need to add environment variables");
 
-    // Set endpoint to API_URL if NODE_ENV is production or staging
-    const endpoint = process.env.NODE_ENV === "development" ?
-                     "http://localhost:3001" : // Default local dev
-                     process.env.REACT_APP_API_URL; // Set up at build time
-
-    //
+    // If defined, use the API_URL endpoint...
+    const endpoint = process.env.REACT_APP_API_URL || "http://localhost:3001";
+    
     console.log("Current endpoint: " + endpoint);
 
     return axios
