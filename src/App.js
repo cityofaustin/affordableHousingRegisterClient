@@ -20,7 +20,7 @@ class App extends Component {
 
     return (
 
-      <Router>
+      <Router basename={window.location.pathname}>
         <div className="App">
           <NavBar />
           <ToastContainer autoClose={8000} />
