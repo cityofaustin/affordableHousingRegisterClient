@@ -91,10 +91,6 @@ else
   helper_halt_deployment "TRAVIS_BRANCH: '${TRAVIS_BRANCH}' cannot be deployed to staging or production."
 fi;
 
-NODE_ENV="production"
-REACT_APP_API_URL="production"
-
-
 #
 # We need AWS permissions
 #
@@ -200,7 +196,7 @@ function forms_reset_cwd {
 function resolve_form_url {
   IS_PR=$(is_pull_request);
   if [ "${IS_PR}" = "TRUE" ]; then
-    echo "officer-complaint-pr-${TRAVIS_PULL_REQUEST}";
+    echo "ahdh-register-pr-${TRAVIS_PULL_REQUEST}";
   else
     echo "${FORM_DEPLOYMENT_URI}";
   fi;
