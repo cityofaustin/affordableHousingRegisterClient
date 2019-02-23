@@ -235,6 +235,7 @@ function forms_build {
   print_header "Building Form"
   forms_reset_cwd;
 
+  LOCAL_ENDPOINT_STR="http://localhost:3001"
   FINAL_URL=$(resolve_form_url)
   echo "URI GENERATED: '${FINAL_URL}'"
 
@@ -248,6 +249,11 @@ function forms_build {
   echo "forms_build() Building form into 'public', REACT_APP_API_URL: '${REACT_APP_API_URL}'"
 
   npm run-script build;
+
+  for JS_FILE in $(grep -rIl "${LOCAL_ENDPOINT_STR}" $NODE_BUILD_FOLDER); do
+  	echo "Patching file: ${JS_FILE}";
+    forms_search_replace_file "${LOCAL_ENDPOINT_STR}" "${REACT_APP_API_URL}" "${JS_FILE}";
+  done
 
   forms_sync_form_aws $FINAL_URL;
 }
