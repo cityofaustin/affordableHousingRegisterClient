@@ -1,8 +1,10 @@
 import axios from 'axios'
 
 export const register = newUser => {
+    // If defined, use the API_URL endpoint
+    const endpoint = process.env.REACT_APP_API_URL || "http://localhost:3001";
     return axios
-        .post('/users/register', {
+        .post(endpoint + '/users/register', {
             first_name: newUser.first_name,
             last_name: newUser.last_name,
             org: newUser.org,

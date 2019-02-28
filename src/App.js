@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css'
 
 import NavBar from './components/Navbar'
 import Register from './components/Register'
+// import NotFound from './components/NotFound';
 
 
 class App extends Component {
@@ -20,13 +21,13 @@ class App extends Component {
 
     return (
 
-      <Router>
+      <Router basename={window.location.pathname}>
         <div className="App">
           <NavBar />
           <ToastContainer autoClose={8000} />
             <div className="container">
               <Switch>
-                <Route exact path="/" component={Register} />
+                <Route exact path="/" component={Register} />   
                 <Route component={Page404} />
               </Switch>
             </div>
