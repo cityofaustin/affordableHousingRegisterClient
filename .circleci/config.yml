@@ -4,6 +4,30 @@
 #
 version: 2
 jobs:
+  test:
+    docker:
+      - image: circleci/node:10
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Show current branch
+          command: echo ${CIRCLE_BRANCH}
+      
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: yarn test
+
   build:
     docker:
       - image: circleci/node:10
@@ -32,9 +56,11 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      # run tests!
-      - run: yarn test
-
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
+            
       # install aws cli
       - run: sudo apt-get update && sudo apt-get install -y python-dev
       - run: sudo curl -O https://bootstrap.pypa.io/get-pip.py
@@ -42,29 +68,32 @@ jobs:
       - run: sudo pip install awscli --upgrade
       - run: aws --version
 
-      - run: aws s3 ls
+      # - run: aws s3 ls
 
       # Build react site
       - run: yarn build
       
       - deploy:
-          name: deploy to staging AWS s3
+          name: deploy to AWS s3
           working_directory: ~/repo
           command: |
             if [ "${CIRCLE_BRANCH}" = "staging" ]; then
               aws s3 sync ~/repo/build \
-              s3://$STAGING_S3_BUCKET_NAME/ --delete
+              s3://$STAGING_S3_BUCKET_NAME/"${CIRCLE_PROJECT_REPONAME}"/"${CIRCLE_BUILD_NUM}" --delete
+            elif [ "${CIRCLE_BRANCH}" = "master" ]; then
+              aws s3 sync ~/repo/build \
+                s3://$PRODUCTION_S3_BUCKET_NAME/ --delete
             else
-              echo "Not staging branch, dry run only"
+              echo "Not staging or master branch, dry run only"
             fi
 
-      - deploy:
-          name: deploy to Production AWS s3
-          working_directory: ~/repo
-          command: |
-            if [ "${CIRCLE_BRANCH}" = "master" ]; then
-              aws s3 sync ~/repo/build \
-              s3://$PRODUCTION_S3_BUCKET_NAME/ --delete
-            else
-              echo "Not master branch, dry run only"
-            fi
+    #  - deploy:
+    #      name: deploy to Production AWS s3
+    #      working_directory: ~/repo
+    #      command: |
+    #        if [ "${CIRCLE_BRANCH}" = "master" ]; then
+    #          aws s3 sync ~/repo/build \
+    #          s3://$PRODUCTION_S3_BUCKET_NAME/ --delete
+    #        else
+    #          echo "Not master branch, dry run only"
+    #        fi
