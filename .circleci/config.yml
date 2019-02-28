@@ -79,7 +79,7 @@ jobs:
           command: |
             if [ "${CIRCLE_BRANCH}" = "staging" ]; then
               aws s3 sync ~/repo/build \
-              s3://$STAGING_S3_BUCKET_NAME/"${CIRCLE_PROJECT_REPONAME}"/"${CIRCLE_BUILD_NUM}" --delete
+              s3://$STAGING_S3_BUCKET_NAME/"${CIRCLE_PROJECT_REPONAME}"-"${CIRCLE_BUILD_NUM}" --delete
             elif [ "${CIRCLE_BRANCH}" = "master" ]; then
               aws s3 sync ~/repo/build \
                 s3://$PRODUCTION_S3_BUCKET_NAME/ --delete
