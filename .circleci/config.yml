@@ -74,7 +74,7 @@ jobs:
       - run: yarn build
 
       - run:
-          name: Show current branch
+          name: Set Express API
           command: |
             if [ "${CIRCLE_BRANCH}" = "staging" ]; then
               REACT_APP_API_URL=$API_URL_STAGING;
@@ -87,6 +87,7 @@ jobs:
             if [ "${REACT_APP_API_URL}" == "" ]; then
               exit 1
             fi;
+            echo "Endpoint REACT_APP_API_URL: ${REACT_APP_API_URL}"
       
       - deploy:
           name: deploy to AWS s3
