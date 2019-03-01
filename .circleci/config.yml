@@ -77,7 +77,7 @@ jobs:
               exit 1
             fi;
             echo "Endpoint REACT_APP_API_URL: $REACT_APP_API_URL"
-            echo 'export REACT_APP_API_URL="${REACT_APP_API_URL}"' >> $BASH_ENV
+            # echo 'export REACT_APP_API_URL="${REACT_APP_API_URL}"' >> $BASH_ENV
 
       - run: 
           name: "Setup custom environment variables"
@@ -87,7 +87,7 @@ jobs:
       - run:
           name: "What was my custom environment variable?"
           command: |
-            echo $REACT_APP_API_URL
+            # echo $REACT_APP_API_URL
             echo ${MY_ENV_VAR}
       
       # Build react site
