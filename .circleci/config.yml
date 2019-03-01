@@ -31,8 +31,6 @@ jobs:
   build:
     docker:
       - image: circleci/node:10
-        environment:
-
     working_directory: ~/repo
 
     steps:
@@ -80,10 +78,17 @@ jobs:
             fi;
             echo "Endpoint REACT_APP_API_URL: ${REACT_APP_API_URL}"
             echo 'export REACT_APP_API_URL=${REACT_APP_API_URL}' >> $BASH_ENV
+            
+      - run: 
+          name: "Setup custom environment variables"
+          command: |
+            echo 'export MY_ENV_VAR="FOO"' >> $BASH_ENV
 
       - run:
           name: "What was my custom environment variable?"
-          command: echo ${REACT_APP_API_URL}
+          command: |
+            echo ${REACT_APP_API_URL}
+            echo ${MY_ENV_VAR}
       
       # Build react site
       - run: yarn build
