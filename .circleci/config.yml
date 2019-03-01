@@ -81,7 +81,7 @@ jobs:
             echo "Endpoint REACT_APP_API_URL: ${REACT_APP_API_URL}"
             echo 'export REACT_APP_API_URL=${REACT_APP_API_URL}' >> $BASH_ENV
 
-      -run:
+      - run:
           name: "What was my custom environment variable?"
           command: echo ${REACT_APP_API_URL}
       
