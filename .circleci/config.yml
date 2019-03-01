@@ -72,6 +72,21 @@ jobs:
 
       # Build react site
       - run: yarn build
+
+      - run:
+          name: Show current branch
+          command: |
+            if [ "${CIRCLE_BRANCH}" = "staging" ]; then
+              REACT_APP_API_URL=$API_URL_STAGING;
+            elif [ "${CIRCLE_BRANCH}" = "master" ]; then
+              REACT_APP_API_URL=$API_URL_PRODUCTION;
+            else
+              echo "No API URL"
+            fi
+
+            if [ "${REACT_APP_API_URL}" == "" ]; then
+              exit 1
+            fi;
       
       - deploy:
           name: deploy to AWS s3
