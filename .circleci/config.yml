@@ -80,6 +80,9 @@ jobs:
             fi;
             echo "Endpoint REACT_APP_API_URL: ${REACT_APP_API_URL}"
             echo 'export REACT_APP_API_URL=${REACT_APP_API_URL}' >> $BASH_ENV
+      
+      # Build react site
+      - run: yarn build
             
       # install aws cli
       - run: sudo apt-get update && sudo apt-get install -y python-dev
@@ -90,10 +93,7 @@ jobs:
 
       # - run: aws s3 ls
 
-      # Build react site
-      - run: yarn build
-
-      
+      # Deploy to AWS
       - deploy:
           name: deploy to AWS s3
           working_directory: ~/repo
