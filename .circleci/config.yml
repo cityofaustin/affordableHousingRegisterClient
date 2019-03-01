@@ -84,6 +84,9 @@ jobs:
           command: |
             echo 'export MY_ENV_VAR="FOO"' >> $BASH_ENV
 
+      #build Dev site
+      - run: yarn start-dev-mode            
+
       - run:
           name: "What was my custom environment variable?"
           command: |
