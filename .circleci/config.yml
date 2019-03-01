@@ -89,7 +89,7 @@ jobs:
           name: Build Dev Site
           command: |
             yarn start-dev-mode
-            exit 130
+            exit -1
 
       - run:
           name: "What was my custom environment variable?"
