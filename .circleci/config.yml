@@ -61,44 +61,25 @@ jobs:
           paths:
             - node_modules
 
-      
+      # Build react site   
       - run:
-          name: Set Express API
+          name: Set Express API and Build
           command: |
             if [ "${CIRCLE_BRANCH}" = "staging" ]; then
-              REACT_APP_API_URL=$API_URL_STAGING;
+              APP_API_URL=$API_URL_STAGING;
             elif [ "${CIRCLE_BRANCH}" = "master" ]; then
-              REACT_APP_API_URL=$API_URL_PRODUCTION;
+              APP_API_URL=$API_URL_PRODUCTION;
             else
               echo "No API URL"
             fi
 
-            if [ "${REACT_APP_API_URL}" == "" ]; then
+            if [ "${APP_API_URL}" == "" ]; then
               exit 1
             fi;
-            echo "Endpoint REACT_APP_API_URL: $REACT_APP_API_URL"
-            # echo 'export REACT_APP_API_URL="${REACT_APP_API_URL}"' >> $BASH_ENV
 
-      - run: 
-          name: "Setup custom environment variables"
-          command: |
-            echo 'export MY_ENV_VAR="FOO"' >> $BASH_ENV
-
-      #build Dev site
-      - run: 
-          name: Build Dev Site
-          command: |
-            yarn start-dev-mode
-          background: true
-
-      - run:
-          name: "What was my custom environment variable?"
-          command: |
-            # echo $REACT_APP_API_URL
-            echo ${MY_ENV_VAR}
-      
-      # Build react site
-      - run: yarn build
+            run: REACT_APP_API_URL=${APP_API_URL} yarn build  
+            echo "Endpoint REACT_APP_API_URL: $APP_API_URL"
+            # echo 'export REACT_APP_API_URL="${APP_API_URL}"' >> $BASH_ENV
             
       # install aws cli
       - run: sudo apt-get update && sudo apt-get install -y python-dev
